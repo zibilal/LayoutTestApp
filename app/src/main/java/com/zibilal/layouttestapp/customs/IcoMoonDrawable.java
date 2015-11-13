@@ -34,7 +34,7 @@ public class IcoMoonDrawable extends Drawable {
         mContext = context;
         mText = text;
         mTextPaint = new TextPaint();
-        mTextPaint.setTypeface(TypeFaceUtil.getTypeface(context));
+        mTextPaint.setTypeface(TypefaceUtil.getTypeface(context));
         mTextPaint.setStyle(Paint.Style.STROKE);
         mTextPaint.setTextAlign(Paint.Align.CENTER);
         mTextPaint.setUnderlineText(false);
@@ -67,7 +67,7 @@ public class IcoMoonDrawable extends Drawable {
     }
 
     public void setDPSize(int size) {
-        mSize = TypeFaceUtil.dip2px(mContext, size);
+        mSize = TypefaceUtil.dip2px(mContext, size);
         mTextPaint.setTextSize(mSize/2);
         invalidateSelf();
     }

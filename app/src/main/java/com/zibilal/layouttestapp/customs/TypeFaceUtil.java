@@ -6,7 +6,7 @@ import android.graphics.Typeface;
 /**
  * Created by Bilal on 11/13/2015.
  */
-public class TypeFaceUtil {
+public class TypefaceUtil {
     private static Typeface _tf;
 
     public static Typeface getTypeface(Context context) {
