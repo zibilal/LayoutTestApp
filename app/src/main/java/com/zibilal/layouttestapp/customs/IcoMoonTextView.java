@@ -20,6 +20,6 @@ public class IcoMoonTextView extends TextView {
     }
 
     private void init(){
-        setTypeface(TypefaceUtil.getTypeface(getContext()));
+        setTypeface(TypeFaceUtil.getTypeface(getContext()));
     }
 }
