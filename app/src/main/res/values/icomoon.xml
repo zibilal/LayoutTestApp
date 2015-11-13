@@ -2,4 +2,19 @@
 <resources>
     <string name="icon_home3">"\ue900"</string>
     <string name="icon_envelop">"\ue901"</string>
+    <string name="icon_map">"\ue902"</string>
+    <string name="icon_map2">"\ue903"</string>
+    <string name="icon_bubble">"\ue904"</string>
+    <string name="icon_bubbles">"\ue905"</string>
+    <string name="icon_cloud">"\ue906"</string>
+    <string name="icon_cloud_download">"\ue907"</string>
+    <string name="icon_cloud_upload">"\ue908"</string>
+    <string name="icon_cloud_check">"\ue909"</string>
+    <string name="icon_download2">"\ue90a"</string>
+    <string name="icon_upload2">"\ue90b</string>
+    <string name="icon_download3">"\ue90c</string>
+    <string name="icon_upload3">"\ue90d"</string>
+    <string name="icon_link">"\ue90e"</string>
+    <string name="icon_checkmark">"\ue90f"</string>
+    <string name="icon_checkmark2">"\ue910"</string>
 </resources>
