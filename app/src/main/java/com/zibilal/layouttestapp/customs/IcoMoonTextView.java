@@ -1,7 +1,6 @@
-package com.zibilal.layouttestapp.packages;
+package com.zibilal.layouttestapp.customs;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
@@ -21,6 +20,6 @@ public class IcoMoonTextView extends TextView {
     }
 
     private void init(){
-        setTypeface(Typeface.createFromAsset(getContext().getAssets(), "icomoon.ttf"));
+        setTypeface(TypefaceUtil.getTypeface(getContext()));
     }
 }
