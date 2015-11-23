@@ -1,19 +1,37 @@
 package com.zibilal.layouttestapp;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 
 import com.zibilal.layouttestapp.customs.IcoMoonDrawable;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity {
 
     @Bind(R.id.fab)
     FloatingActionButton mFab;
+
+    @OnClick(R.id.home) public void onHomeClick(View view) {
+        Intent intent = new Intent(this, ThirdActivity.class);
+        startActivity(intent);
+    }
+
+    @OnClick(R.id.fab) public void onFabClick(View view) {
+        Intent intent = new Intent(this, SecondActivity.class);
+        startActivity(intent);
+    }
+
+    @OnClick(R.id.bubbles) public void onBubblesClick(View view) {
+        Intent intent = new Intent(this, CollapsingToolbarLayoutActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

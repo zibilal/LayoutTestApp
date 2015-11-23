@@ -3,12 +3,25 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <com.zibilal.layouttestapp.customs.IcoMoonTextView
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/icon_home3"
-        android:textSize="64sp"
-        android:layout_margin="16dp"/>
+        android:orientation="horizontal">
+        <com.zibilal.layouttestapp.customs.IcoMoonTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/icon_home3"
+            android:textSize="64sp"
+            android:layout_margin="16dp"
+            android:id="@+id/home"/>
+        <com.zibilal.layouttestapp.customs.IcoMoonTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/icon_bubbles"
+            android:textSize="64sp"
+            android:layout_margin="16dp"
+            android:id="@+id/bubbles"/>
+    </LinearLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
