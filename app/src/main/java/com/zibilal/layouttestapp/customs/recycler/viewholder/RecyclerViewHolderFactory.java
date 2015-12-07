@@ -5,6 +5,7 @@ import android.view.View;
 import com.zibilal.layouttestapp.R;
 
 import java.lang.reflect.Constructor;
+import java.util.HashMap;
 import java.util.WeakHashMap;
 
 
@@ -13,11 +14,11 @@ import java.util.WeakHashMap;
  */
 public class RecyclerViewHolderFactory {
 
-    private static WeakHashMap<Integer, String> classMap;
-    static {
-        classMap = new WeakHashMap<>();
-        classMap.put(R.layout.item_default_view, "com.zibilal.layouttestapp.customs.recycler.viewholder.DefaultItemViewHolder");
-    }
+    private static HashMap<Integer, String> classMap =  new HashMap<Integer, String>(){
+        {
+            put(R.layout.item_default_view, "com.zibilal.layouttestapp.customs.recycler.viewholder.DefaultItemViewHolder");
+        }
+    } ;
     public RecyclerViewHolderFactory() {
     }
 
