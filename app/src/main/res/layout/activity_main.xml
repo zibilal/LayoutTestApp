@@ -21,6 +21,13 @@
             android:textSize="64sp"
             android:layout_margin="16dp"
             android:id="@+id/bubbles"/>
+        <com.zibilal.layouttestapp.customs.IcoMoonTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/icon_map2"
+            android:textSize="64sp"
+            android:layout_margin="16dp"
+            android:id="@+id/pie_chart"/>
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

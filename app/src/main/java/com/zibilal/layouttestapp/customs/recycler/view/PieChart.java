@@ -17,6 +17,7 @@ import android.graphics.Shader;
 import android.graphics.SweepGradient;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,20 +34,21 @@ import java.util.List;
  */
 public class PieChart extends ViewGroup {
 
+    public static final int TEXTPOS_LEFT = 0;
     public static final int AUTOCENTER_ANIM_DURATION = 250;
     public static final int FLING_VELOCITY_DOWNSCALE = 4;
 
     private List<Item> mData = new ArrayList<>();
 
     private boolean mShowText;
-    private float mTextX;
-    private float mTextY;
-    private float mTextWidth;
-    private float mTextHeight;
-    private int mTextPos;
-    private float mHighlightStrength;
+    private float mTextX=0.0f;
+    private float mTextY=0.0f;
+    private float mTextWidth=0.0f;
+    private float mTextHeight=0.0f;
+    private int mTextPos = TEXTPOS_LEFT;
+    private float mHighlightStrength = 1.15f;
     private int mPieRotation;
-    private float mPointerRadius;
+    private float mPointerRadius=2.0f;
     private boolean mAutoCenterInSlice;
     private int mTextColor;
 
@@ -89,7 +91,7 @@ public class PieChart extends ViewGroup {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.PieChart, 0, 0);
         try {
-            mShowText = a.getBoolean(R.styleable.PieChart_showText, false);
+            mShowText = a.getBoolean(R.styleable.PieChart_showTheText, false);
             mTextY = a.getDimension(R.styleable.PieChart_labelY, 0.0f);
             mTextWidth = a.getDimension(R.styleable.PieChart_labelWidth, 0.0f);
             mTextHeight = a.getDimension(R.styleable.PieChart_labelHeight, 0.0f);
@@ -108,6 +110,7 @@ public class PieChart extends ViewGroup {
     private void init(){
         // Force the background to software rendering because the Blur filter won't work
         setLayerToSW(this);
+        setWillNotDraw(false);
 
         // Set up the paint for the label text
         mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -119,6 +122,11 @@ public class PieChart extends ViewGroup {
         }
 
         // Set up the paint for the pie slices
+        mPiePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPiePaint.setStyle(Paint.Style.FILL);
+        mPiePaint.setTextSize(mTextHeight);
+
+        // Set up the paint for the shadow
         mShadowPaint = new Paint(0);
         mShadowPaint.setColor(0xff101010);
         mShadowPaint.setMaskFilter(new BlurMaskFilter(8, BlurMaskFilter.Blur.NORMAL));
@@ -294,16 +302,84 @@ public class PieChart extends ViewGroup {
         float diameter = Math.min(ww, hh);
         mPieBounds = new RectF(0.0f, 0.0f, diameter, diameter);
         mPieBounds.offsetTo(getPaddingLeft(), getPaddingTop());
+        mPointerY = mTextY - (mTextHeight / 2.0f);
+        float pointerOffset = mPieBounds.centerY() - mPointerY;
 
-        //
+        // Make adjustments based on text position
+        if (mTextPos == TEXTPOS_LEFT) {
+            mTextPaint.setTextAlign(Paint.Align.RIGHT);
+            if (mShowText) mPieBounds.offset(mTextWidth, 0.0f);
+            mTextX = mPieBounds.left;
+
+            if (pointerOffset < 0) {
+                pointerOffset = -pointerOffset;
+                mCurrentItemAngle = 225;
+            } else {
+                mCurrentItemAngle = 135;
+            }
+            mPointerX = mPieBounds.centerX() - pointerOffset;
+        } else {
+            mTextPaint.setTextAlign(Paint.Align.LEFT);
+            mTextX = mPieBounds.right;
+
+            if (pointerOffset < 0) {
+                pointerOffset = -pointerOffset;
+                mCurrentItemAngle = 315;
+            } else {
+                mCurrentItemAngle = 45;
+            }
+            mPointerX = mPieBounds.centerX() + pointerOffset;
+        }
+
+        mShadowBounds = new RectF(mPieBounds.left + 10, mPieBounds.bottom + 10, mPieBounds.right - 10, mPieBounds.bottom + 20);
+
+        // Lay out the child view that actually draws the pie.
+        mPieView.layout((int) mPieBounds.left, (int) mPieBounds.top, (int) mPieBounds.right, (int) mPieBounds.bottom);
+        mPieView.setPivot(mPieBounds.width() / 2, mPieBounds.height() / 2);
+
+        mPointerView.layout(0, 0, w, h);
+        onDataChanged();
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // Try for a width based on our minimum
+        int minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
+        int w = Math.max(minw, MeasureSpec.getSize(widthMeasureSpec));
+
+        // Whether the width ends up being, ask for a height that would let the pie
+        // get as big as it can
+        int minh = (w - (int) mTextWidth) + getPaddingBottom() + getPaddingTop();
+        int h = Math.min(MeasureSpec.getSize(heightMeasureSpec), minh);
+        setMeasuredDimension(w, h);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // Let the GestureDetector interpret this event
+        boolean result = mDetector.onTouchEvent(event);
+
+        // If the GestureDetector doesn't want this event, do some custom processing.
+        // This code just tries to detect when the user is done scrolling by looking
+        // for ACTION_UP events.
+        if (!result) {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                // User is done scrolling, it's now safe to do things like autocenter
+                stopScrolling();
+                result = true;
+            }
+        }
+        return result;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
+        Log.d(PieChart.class.getSimpleName(), "OnDraw....");
         super.onDraw(canvas);
 
         // Draw the shadow
         canvas.drawOval(mShadowBounds, mShadowPaint);
+        Log.d(PieChart.class.getSimpleName(), "Show the text ? " + isShowText());
         if (isShowText()) {
             canvas.drawText(mData.get(mCurrentItem).mLabel, mTextX, mTextY, mTextPaint);
         }
@@ -322,6 +398,7 @@ public class PieChart extends ViewGroup {
 
     public void setShowText(boolean showText) {
         mShowText=showText;
+        invalidate();
     }
 
     public int getPieRotation() {
@@ -383,6 +460,7 @@ public class PieChart extends ViewGroup {
             Item it = mData.get(i);
             if (it.mStartAngle <= pointerAngle && pointerAngle <= it.mEndAngle) {
                 if (i != mCurrentItem) {
+                    Log.d(PieChart.class.getSimpleName(), "The item " + it.mLabel);
                     setCurrentItem(i, false);
                 }
                 break;

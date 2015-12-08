@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="?attr/actionBarSize">
+    <com.zibilal.layouttestapp.customs.recycler.view.PieChart
+        android:id="@+id/pie_chart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_weight="100"
+        app:showTheText="true"
+        app:labelHeight="20dp"
+        app:labelWidth="20dp"
+        app:labelY="85dp"
+        app:labelPosition="left"
+        app:highlightStrength="1.12"
+        app:pieRotation="0"
+        app:labelColor="@android:color/black"
+        app:autoCenterPoninterInSlice="true"
+        app:pointerRadius="4dp"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/reset"
+        android:text="Reset"/>
+</LinearLayout>

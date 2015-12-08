@@ -33,6 +33,11 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @OnClick(R.id.pie_chart) public void onPieChartClick(View view) {
+        Intent intent = new Intent(this, PieChartActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
