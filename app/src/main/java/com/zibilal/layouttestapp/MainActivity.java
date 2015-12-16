@@ -38,6 +38,11 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @OnClick(R.id.download_page) public void onDownloadPageClick(View view) {
+        Intent intent = new Intent(this, VolleyTestActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
