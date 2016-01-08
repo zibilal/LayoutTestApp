@@ -14,4 +14,5 @@
     <string name="title_activity_pie_chart">PieChartActivity</string>
     <string name="title_activity_fourth">FourthActivity</string>
     <string name="title_activity_volley_test">Volley Test</string>
+    <string name="action_service_receive">com.zibilal.layouttestapp.MY_SERVICE_ACTION</string>
 </resources>
