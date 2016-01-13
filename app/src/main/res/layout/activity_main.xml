@@ -74,6 +74,13 @@
                 android:text="@string/icon_link"
                 android:layout_margin="16dp"
                 android:id="@+id/stop_service"/>
+            <com.zibilal.layouttestapp.customs.IcoMoonTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="64sp"
+                android:text="@string/icon_envelop"
+                android:layout_margin="16dp"
+                android:id="@+id/start_test_api"/>
         </LinearLayout>
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton
