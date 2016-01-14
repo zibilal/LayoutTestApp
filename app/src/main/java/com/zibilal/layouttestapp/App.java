@@ -1,9 +1,9 @@
 package com.zibilal.layouttestapp;
 
 import android.app.Application;
-import android.content.Intent;
 
-import com.zibilal.layouttestapp.service.MyService;
+import com.zibilal.layouttestapp.data.worker.CalendarFetcher;
+import com.zibilal.layouttestapp.data.worker.CallLogFetcher;
 
 /**
  * Created by Bilal on 1/8/2016.
@@ -14,6 +14,8 @@ public class App extends Application {
         super.onCreate();
 
         // Starting service
-        startService(new Intent(getBaseContext(), MyService.class));
+        //startService(new Intent(getBaseContext(), MyService.class));
+        CallLogFetcher.init(getBaseContext());
+        CalendarFetcher.init(getBaseContext());
     }
 }

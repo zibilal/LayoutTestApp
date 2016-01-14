@@ -1,34 +1,47 @@
 package com.zibilal.layouttestapp;
 
+import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
 import com.zibilal.layouttestapp.customs.IcoMoonDrawable;
+import com.zibilal.layouttestapp.data.worker.CalendarFetcher;
+import com.zibilal.layouttestapp.data.worker.CallLogFetcher;
 import com.zibilal.layouttestapp.service.MyService;
 import com.zibilal.volley.AuthRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
+import java.util.List;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import rx.Subscriber;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final int REQUEST_PERMISSION_CALL_LOG = 111;
+    private static final int REQUEST_PERMISSION_CALENDAR = 112;
 
     @Bind(R.id.fab)
     FloatingActionButton mFab;
@@ -70,6 +83,75 @@ public class MainActivity extends AppCompatActivity {
         startTest();
     }
 
+    @OnClick(R.id.start_fetch_calendar) public void onStartFetchCalendar(View view) {
+        boolean fetch= true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int permissionCheckReadCalendars = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR);
+            if (permissionCheckReadCalendars != PackageManager.PERMISSION_GRANTED) {
+                fetch = false;
+                ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_CALENDAR}, REQUEST_PERMISSION_CALENDAR );
+            }
+        }
+
+        if (fetch) {
+            mProgressDialog = ProgressDialog.show(this, "Fetch Calendar", "Fetching calendar", true, false);
+            fetchCalendar(mSubs);
+        }
+    }
+
+    @OnClick(R.id.start_fetch_callog) public void onStartFetchCallog(View view) {
+        boolean fetch=true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int permissionCheckReadCallLog = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG);
+
+            if (permissionCheckReadCallLog != PackageManager.PERMISSION_GRANTED) {
+                fetch = false;
+                ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_CALL_LOG}, REQUEST_PERMISSION_CALL_LOG);
+            }
+        }
+
+        if (fetch) {
+            mProgressDialog = ProgressDialog.show(this, "Fetch Call Log", "Fetching call log", true, false);
+            fetchCallog(mSubs);
+        }
+    }
+
+    private Subscriber<List<String>> mSubs = new Subscriber<List<String>>() {
+        @Override
+        public void onCompleted() {
+
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            Toast.makeText(MainActivity.this, "Exception is occured: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onNext(List<String> strings) {
+            if (mProgressDialog != null)
+                mProgressDialog.dismiss();
+
+            Toast.makeText(MainActivity.this, "Result: " + strings.size(), Toast.LENGTH_SHORT).show();
+            for (String s : strings) {
+                Log.d(MainActivity.class.getSimpleName(), "S: " + s );
+            }
+            Log.d(MainActivity.class.getSimpleName(), "Fetch is finished " + new Date());
+        }
+    };
+
+    private ProgressDialog mProgressDialog;
+
+    private void fetchCalendar(Subscriber<List<String>> subs) {
+        Log.d(MainActivity.class.getSimpleName(), "Fetch is starting " + new Date());
+        CalendarFetcher.getInstance().fetchCalendars(subs);
+    }
+
+    private void fetchCallog(Subscriber<List<String>> subs) {
+        Log.d(MainActivity.class.getSimpleName(), "Fetch is starting " + new Date());
+        CallLogFetcher.getInstance().fetchCallLog(subs, "+61277488708973648");
+    }
+
     private void startTest() {
         try {
             JSONObject params = new JSONObject();
@@ -101,9 +183,7 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, showIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(contentIntent);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        new Thread(() -> {
                 int i;
                 for (i=0; i <= 100; i+=5) {
                     builder.setProgress(100, i, false);
@@ -116,8 +196,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 builder.setContentText("Download complete").setProgress(0, 0, false);
                 notificationManager.notify(id, builder.build());
-            }
-        }).start();
+            }).start();
     }
 
     @Override
@@ -131,5 +210,36 @@ public class MainActivity extends AppCompatActivity {
         checkDrawable.setDPSize(12);
         checkDrawable.setColor(Color.CYAN);
         mFab.setImageDrawable(checkDrawable);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        boolean granted = false;
+        switch (requestCode) {
+            case REQUEST_PERMISSION_CALL_LOG:
+                if (grantResults != null) {
+                    for (int grant : grantResults) {
+                        granted = (grant == PackageManager.PERMISSION_GRANTED);
+                    }
+                    if (granted) {
+                        Toast.makeText(this, "Permission is granted, start fetching call log...", Toast.LENGTH_SHORT).show();
+                        mProgressDialog = ProgressDialog.show(this, "Fetch Call Log", "Fetching call log", true, false);
+                        fetchCallog(mSubs);
+                    }
+                }
+                break;
+            case REQUEST_PERMISSION_CALENDAR:
+                if (grantResults != null) {
+                    for (int grant : grantResults) {
+                        granted = (grant == PackageManager.PERMISSION_GRANTED);
+                    }
+                    if (granted) {
+                        Toast.makeText(this, "Permission is granted, start fetching calendar...", Toast.LENGTH_SHORT).show();
+                        mProgressDialog = ProgressDialog.show(this, "Fetch Calendar", "Fetching calendar", true, false);
+                        fetchCalendar(mSubs);
+                    }
+                }
+                break;
+        }
     }
 }

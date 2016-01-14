@@ -65,8 +65,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_gravity="">
+            android:orientation="horizontal">
             <com.zibilal.layouttestapp.customs.IcoMoonTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -81,6 +80,25 @@
                 android:text="@string/icon_envelop"
                 android:layout_margin="16dp"
                 android:id="@+id/start_test_api"/>
+            <com.zibilal.layouttestapp.customs.IcoMoonTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="64sp"
+                android:text="@string/icon_upload3"
+                android:layout_margin="16dp"
+                android:id="@+id/start_fetch_callog"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <com.zibilal.layouttestapp.customs.IcoMoonTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="64sp"
+                android:text="@string/icon_map"
+                android:layout_margin="16dp"
+                android:id="@+id/start_fetch_calendar"/>
         </LinearLayout>
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton
