@@ -24,6 +24,12 @@ import com.android.volley.toolbox.Volley;
 import com.zibilal.layouttestapp.customs.IcoMoonDrawable;
 import com.zibilal.layouttestapp.data.worker.CalendarFetcher;
 import com.zibilal.layouttestapp.data.worker.CallLogFetcher;
+import com.zibilal.layouttestapp.model.Item;
+import com.zibilal.layouttestapp.network.retrofit.BeecastleApiManager;
+import com.zibilal.layouttestapp.network.retrofit.BeecastleRestrictedApiManager;
+import com.zibilal.layouttestapp.network.retrofit.SeApiManager;
+import com.zibilal.layouttestapp.network.retrofit.model.Preferences;
+import com.zibilal.layouttestapp.network.retrofit.model.TokenModel;
 import com.zibilal.layouttestapp.service.MyService;
 import com.zibilal.volley.AuthRequest;
 
@@ -37,11 +43,16 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.Subscriber;
+import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_PERMISSION_CALL_LOG = 111;
     private static final int REQUEST_PERMISSION_CALENDAR = 112;
+
+    private SeApiManager mSeApiManager;
+    private BeecastleApiManager mBeecastleApiManager;
+    private BeecastleRestrictedApiManager mBeecastleRestrictedApiManager;
 
     @Bind(R.id.fab)
     FloatingActionButton mFab;
@@ -199,6 +210,42 @@ public class MainActivity extends AppCompatActivity {
             }).start();
     }
 
+    @OnClick(R.id.get_data) public void onGetDataClick(View view) {
+        mSeApiManager.getMostPopularSOusers(10)
+                .subscribe(users -> {
+                    for (Item item : users) {
+                        Log.d(MainActivity.class.getSimpleName(), "The item: " + item.getDisplayName());
+                    }
+                    Toast.makeText(MainActivity.this, "Users data is gathered", Toast.LENGTH_SHORT).show();
+                }, error -> Toast.makeText(MainActivity.this, "error is occured: " + error.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    @OnClick(R.id.login_beecastle) public void onLoginBeecastle(View view) {
+        mBeecastleApiManager.login("tt101@example.com", "111111")
+                .subscribe(tokenModel -> {
+                    try {
+                        Preferences.getInstance().setTokenObject(tokenModel);
+                        mBeecastleRestrictedApiManager = new BeecastleRestrictedApiManager(tokenModel);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(MainActivity.this, "Login is successfull --> token_access: " + tokenModel.getAccessToken(), Toast.LENGTH_SHORT).show();
+                    Log.d(MainActivity.class.getSimpleName(), "Access token : " + tokenModel.getAccessToken());
+                }, error -> Toast.makeText(MainActivity.this, "Login is failed dute to: " + error.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    @OnClick(R.id.get_group) public void onGetGroupClick(View view) {
+        if (mBeecastleRestrictedApiManager != null) {
+            mBeecastleRestrictedApiManager.getGroup()
+                    .subscribe(list -> {
+                        Toast.makeText(MainActivity.this, "The list : " + list.size(), Toast.LENGTH_SHORT).show();
+                        Log.d(MainActivity.class.getSimpleName(), "Group list : " + list.size());
+                    }, error -> Toast.makeText(MainActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show());
+        } else {
+            Toast.makeText(MainActivity.this, "Restricted Api Manager is missing", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -210,6 +257,9 @@ public class MainActivity extends AppCompatActivity {
         checkDrawable.setDPSize(12);
         checkDrawable.setColor(Color.CYAN);
         mFab.setImageDrawable(checkDrawable);
+
+        mSeApiManager = new SeApiManager();
+        mBeecastleApiManager = new BeecastleApiManager();
     }
 
     @Override
