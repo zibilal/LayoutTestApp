@@ -23,7 +23,9 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.Volley;
 import com.zibilal.layouttestapp.customs.IcoMoonDrawable;
 import com.zibilal.layouttestapp.data.worker.CalendarFetcher;
+import com.zibilal.layouttestapp.data.worker.CalendarModel;
 import com.zibilal.layouttestapp.data.worker.CallLogFetcher;
+import com.zibilal.layouttestapp.data.worker.CallLogModel;
 import com.zibilal.layouttestapp.model.Item;
 import com.zibilal.layouttestapp.network.retrofit.BeecastleApiManager;
 import com.zibilal.layouttestapp.network.retrofit.BeecastleRestrictedApiManager;
@@ -106,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (fetch) {
             mProgressDialog = ProgressDialog.show(this, "Fetch Calendar", "Fetching calendar", true, false);
-            fetchCalendar(mSubs);
+            fetchCalendar(mCalendarCallback);
         }
     }
 
@@ -123,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (fetch) {
             mProgressDialog = ProgressDialog.show(this, "Fetch Call Log", "Fetching call log", true, false);
-            fetchCallog(mSubs);
+            fetchCallog();
         }
     }
 
@@ -151,16 +153,55 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private CalendarFetcher.Callback mCalendarCallback = new CalendarFetcher.Callback() {
+        @Override
+        public void onUpdate(Object object) {
+            List<CalendarModel> strings = (List<CalendarModel>) object;
+            if (mProgressDialog != null)
+                mProgressDialog.dismiss();
+
+            Toast.makeText(MainActivity.this, "Result: " + strings.size(), Toast.LENGTH_SHORT).show();
+            for (CalendarModel s : strings) {
+                Log.d(MainActivity.class.getSimpleName(), "S: " + s.Name );
+            }
+            Log.d(MainActivity.class.getSimpleName(), "Fetch is finished " + new Date());
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            Toast.makeText(MainActivity.this, "Exception is occured: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    };
+
     private ProgressDialog mProgressDialog;
 
-    private void fetchCalendar(Subscriber<List<String>> subs) {
+    private void fetchCalendar(CalendarFetcher.Callback subs) {
         Log.d(MainActivity.class.getSimpleName(), "Fetch is starting " + new Date());
         CalendarFetcher.getInstance().fetchCalendars(subs);
     }
 
-    private void fetchCallog(Subscriber<List<String>> subs) {
+    private CallLogFetcher.Callback callLogCallback = new CallLogFetcher.Callback() {
+        @Override
+        public void onError(Throwable t) {
+            if (mProgressDialog != null)
+                mProgressDialog.dismiss();
+            Log.e(MainActivity.class.getSimpleName(), "Exception is occured: " + t.getMessage());
+        }
+
+        @Override
+        public void onUpdate(Object object) {
+            if (mProgressDialog != null)
+                mProgressDialog.dismiss();
+            List<CallLogModel> logs = (List<CallLogModel>) object;
+            for (CallLogModel c : logs) {
+                Log.d(MainActivity.class.getSimpleName(), c.toString());
+            }
+        }
+    };
+
+    private void fetchCallog() {
         Log.d(MainActivity.class.getSimpleName(), "Fetch is starting " + new Date());
-        CallLogFetcher.getInstance().fetchCallLog(subs, "+61277488708973648");
+        CallLogFetcher.getInstance().fetchCallLog(callLogCallback, "+61277488708973648");
     }
 
     private void startTest() {
@@ -274,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
                     if (granted) {
                         Toast.makeText(this, "Permission is granted, start fetching call log...", Toast.LENGTH_SHORT).show();
                         mProgressDialog = ProgressDialog.show(this, "Fetch Call Log", "Fetching call log", true, false);
-                        fetchCallog(mSubs);
+                        fetchCallog();
                     }
                 }
                 break;
@@ -286,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
                     if (granted) {
                         Toast.makeText(this, "Permission is granted, start fetching calendar...", Toast.LENGTH_SHORT).show();
                         mProgressDialog = ProgressDialog.show(this, "Fetch Calendar", "Fetching calendar", true, false);
-                        fetchCalendar(mSubs);
+                        fetchCalendar(mCalendarCallback);
                     }
                 }
                 break;

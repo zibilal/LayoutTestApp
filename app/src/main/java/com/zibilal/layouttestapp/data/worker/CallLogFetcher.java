@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.provider.CallLog;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -24,6 +26,11 @@ public class CallLogFetcher {
 
     private ContentResolver mContentResolver;
 
+    public interface Callback {
+        void onError(Throwable t);
+        void onUpdate(Object object);
+    }
+
     private CallLogFetcher(Context context) {
         mContentResolver = context.getContentResolver();
     }
@@ -41,11 +48,11 @@ public class CallLogFetcher {
         return _instance;
     }
 
-    public void fetchCallLog(Subscriber<List<String>> subs, String phoneNumber) {
-        Observable<List<String>> observable = Observable.create(subscriber -> {
+    public void fetchCallLog(Callback callback, String phoneNumber) {
+        Observable<List<CallLogModel>> observable = Observable.create(subscriber -> {
             Cursor cursor = null;
             try {
-                List<String> result = new ArrayList<>();
+                List<CallLogModel> result = new ArrayList<>();
                 String whereClause = CallLog.Calls.NUMBER + "=?";
                 String[] selectionArgs = {phoneNumber};
                 cursor = mContentResolver.query(CallLog.Calls.CONTENT_URI, null, whereClause,
@@ -66,7 +73,9 @@ public class CallLogFetcher {
                         jobj.put("date_time_millis", dateTimeMillis);
                         jobj.put("duration_millis", durationMillis);
                         jobj.put("type", type);
-                        result.add(jobj.toString());
+                        Gson gson = new Gson();
+                        CallLogModel model = gson.fromJson(jobj.toString(), CallLogModel.class);
+                        result.add(model);
                     }
                 }
 
@@ -86,14 +95,15 @@ public class CallLogFetcher {
         });
         observable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(subs);
+                .subscribe(callLogs -> callback.onUpdate(callLogs),
+                        error -> callback.onError(error));
     }
 
-    public void fetchCallLog(Subscriber<List<String>> subs) {
-        Observable<List<String>> observable = Observable.create(subscriber -> {
+    public void fetchCallLog(Callback callback) {
+        Observable<List<CallLogModel>> observable = Observable.create(subscriber -> {
             Cursor cursor = null;
             try {
-                List<String> result = new ArrayList<>();
+                List<CallLogModel> result = new ArrayList<>();
                 cursor = mContentResolver.query(CallLog.Calls.CONTENT_URI,
                         null, null, null, CallLog.Calls.DEFAULT_SORT_ORDER);
                 if (cursor != null) {
@@ -111,7 +121,9 @@ public class CallLogFetcher {
                         jobj.put("date_time_millis", dateTimeMillis);
                         jobj.put("duration_millis", durationMillis);
                         jobj.put("type", type);
-                        result.add(jobj.toString());
+                        Gson gson = new Gson();
+                        CallLogModel model = gson.fromJson(jobj.toString(), CallLogModel.class);
+                        result.add(model);
                     }
                 }
                 subscriber.onNext(result);
@@ -130,6 +142,7 @@ public class CallLogFetcher {
         });
         observable.observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(subs);
+                .subscribe(callLogs -> callback.onUpdate(callLogs),
+                        error -> callback.onError(error));
     }
 }
