@@ -26,6 +26,7 @@ import com.zibilal.layouttestapp.data.worker.CalendarFetcher;
 import com.zibilal.layouttestapp.data.worker.CalendarModel;
 import com.zibilal.layouttestapp.data.worker.CallLogFetcher;
 import com.zibilal.layouttestapp.data.worker.CallLogModel;
+import com.zibilal.layouttestapp.data.worker.ContactsFetcher;
 import com.zibilal.layouttestapp.model.Item;
 import com.zibilal.layouttestapp.network.retrofit.BeecastleApiManager;
 import com.zibilal.layouttestapp.network.retrofit.BeecastleRestrictedApiManager;
@@ -51,10 +52,13 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_PERMISSION_CALL_LOG = 111;
     private static final int REQUEST_PERMISSION_CALENDAR = 112;
+    private static final int REQUEST_PERMISSION_READ_CONTACTS = 113;
 
     private SeApiManager mSeApiManager;
     private BeecastleApiManager mBeecastleApiManager;
     private BeecastleRestrictedApiManager mBeecastleRestrictedApiManager;
+
+    private static long startProcess;
 
     @Bind(R.id.fab)
     FloatingActionButton mFab;
@@ -129,29 +133,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Subscriber<List<String>> mSubs = new Subscriber<List<String>>() {
-        @Override
-        public void onCompleted() {
+    @OnClick(R.id.get_contacts) public void onGetContacts(View view) {
+        boolean fetch = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int permissionCheckReadCallLog = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
 
-        }
-
-        @Override
-        public void onError(Throwable e) {
-            Toast.makeText(MainActivity.this, "Exception is occured: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onNext(List<String> strings) {
-            if (mProgressDialog != null)
-                mProgressDialog.dismiss();
-
-            Toast.makeText(MainActivity.this, "Result: " + strings.size(), Toast.LENGTH_SHORT).show();
-            for (String s : strings) {
-                Log.d(MainActivity.class.getSimpleName(), "S: " + s );
+            if (permissionCheckReadCallLog != PackageManager.PERMISSION_GRANTED) {
+                fetch = false;
+                ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_CONTACTS}, REQUEST_PERMISSION_READ_CONTACTS);
             }
-            Log.d(MainActivity.class.getSimpleName(), "Fetch is finished " + new Date());
         }
-    };
+
+        if (fetch) {
+            mProgressDialog = ProgressDialog.show(this, "Fetch Contacts", "Fetching call contacts", true, false);
+            fetchContacts();
+        }
+    }
+
+    private void fetchContacts() {
+        startProcess = System.currentTimeMillis();
+        ContactsFetcher.getInstance().fetchContacts(new ContactsFetcher.Callback() {
+            @Override
+            public void onError(Throwable t) {
+                mProgressDialog.dismiss();
+                Log.e(MainActivity.class.getSimpleName(), "Failed due to:  " + t.getMessage());
+            }
+
+            @Override
+            public void onUpgrade(Object object) {
+                mProgressDialog.dismiss();
+                List<String> strings = (List<String>) object;
+                Log.d(MainActivity.class.getSimpleName(), "Length of data : " + strings.size());
+                Log.d(MainActivity.class.getSimpleName(), "Elapsed time : " + (System.currentTimeMillis() - startProcess));
+            }
+        });
+    }
 
     private CalendarFetcher.Callback mCalendarCallback = new CalendarFetcher.Callback() {
         @Override
@@ -331,6 +347,18 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 break;
+            case REQUEST_PERMISSION_READ_CONTACTS:
+                if (grantResults != null) {
+                    for (int grant : grantResults) {
+                        granted = (grant == PackageManager.PERMISSION_GRANTED);
+                    }
+
+                    if (granted) {
+                        Toast.makeText(MainActivity.this, "Permission is granted, start fetching the contacts", Toast.LENGTH_SHORT).show();
+                        mProgressDialog = ProgressDialog.show(this, "Fetch Contacts", "Fetching contacts", true, false);
+                        fetchContacts();
+                    }
+                }
         }
     }
 }

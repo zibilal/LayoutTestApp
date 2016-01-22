@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.zibilal.layouttestapp.data.worker.CalendarFetcher;
 import com.zibilal.layouttestapp.data.worker.CallLogFetcher;
+import com.zibilal.layouttestapp.data.worker.ContactsFetcher;
 import com.zibilal.layouttestapp.network.retrofit.model.Preferences;
 
 /**
@@ -14,10 +15,9 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        // Starting service
-        //startService(new Intent(getBaseContext(), MyService.class));
         CallLogFetcher.init(getBaseContext());
         CalendarFetcher.init(getBaseContext());
+        ContactsFetcher.init(getBaseContext());
         Preferences.init(getBaseContext());
     }
 }

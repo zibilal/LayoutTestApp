@@ -125,6 +125,13 @@
                 android:text="@string/icon_download3"
                 android:layout_margin="16dp"
                 android:id="@+id/get_group"/>
+            <com.zibilal.layouttestapp.customs.IcoMoonTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="64sp"
+                android:text="@string/icon_cloud"
+                android:layout_margin="16dp"
+                android:id="@+id/get_contacts" />
         </LinearLayout>
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton
