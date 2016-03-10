@@ -27,6 +27,8 @@ import com.zibilal.layouttestapp.data.worker.CalendarModel;
 import com.zibilal.layouttestapp.data.worker.CallLogFetcher;
 import com.zibilal.layouttestapp.data.worker.CallLogModel;
 import com.zibilal.layouttestapp.data.worker.ContactsFetcher;
+import com.zibilal.layouttestapp.model.Example;
+import com.zibilal.layouttestapp.model.IDataAdapter;
 import com.zibilal.layouttestapp.model.Item;
 import com.zibilal.layouttestapp.network.retrofit.BeecastleApiManager;
 import com.zibilal.layouttestapp.network.retrofit.BeecastleRestrictedApiManager;
@@ -39,13 +41,17 @@ import com.zibilal.volley.AuthRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import rx.Observable;
+import rx.Observer;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity {
@@ -217,7 +223,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchCallog() {
         Log.d(MainActivity.class.getSimpleName(), "Fetch is starting " + new Date());
-        CallLogFetcher.getInstance().fetchCallLog(callLogCallback, "+61277488708973648");
+        //CallLogFetcher.getInstance().fetchCallLog(callLogCallback, "+61277488708973648");
+        CallLogFetcher.getInstance().fetchCallLogs(callLogCallback);
     }
 
     private void startTest() {
@@ -301,6 +308,70 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(MainActivity.this, "Restricted Api Manager is missing", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @OnClick(R.id.test_reactive) public void onTestReactiveClick(View view) {
+        Observable<Object> obs1 = Observable.create(observer -> {
+            int mul = 1;
+            for (int i = 1; i < 5; i++) {
+                observer.onNext(mul * i);
+            }
+            observer.onCompleted();
+        });
+        Observable<Object> obs2 = Observable.create(observer -> {
+            String[] strings = {
+                    "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam"
+            };
+            for (String s : strings) {
+                observer.onNext(s);
+            }
+            observer.onCompleted();
+        });
+        Observable<Object> obs3 = Observable.create(observer -> {
+            List<Example> samples = new ArrayList<>();
+            samples.add(new Example("ExSatu"));
+            samples.add(new Example("ExDua"));
+            samples.add(new Example("ExTiga"));
+            samples.add(new Example("ExEmpat"));
+            for (Example e : samples) {
+                observer.onNext(e);
+            }
+            observer.onCompleted();
+        });
+
+        /*Observable.concat(obs1, obs2, obs3).subscribe(new Observer<Object>() {
+            @Override
+            public void onCompleted() {
+                Log.d(MainActivity.class.getSimpleName(), "On completed is called");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(MainActivity.class.getSimpleName(), "Exception is occured: " + e.getMessage());
+            }
+
+            @Override
+            public void onNext(Object obj) {
+                Log.d(MainActivity.class.getSimpleName(), "The data: " + obj + ", type: " + obj.getClass().getSimpleName());
+            }
+        });*/
+
+        Observable.just(obs1, obs2, obs3).subscribe(new Observer<Observable<Object>>() {
+            @Override
+            public void onCompleted() {
+                Log.d(MainActivity.class.getSimpleName(), "Completed is called");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(MainActivity.class.getSimpleName(), "Exception is occured: " + e.getMessage());
+            }
+
+            @Override
+            public void onNext(Observable<Object> objectObservable) {
+
+            }
+        });
     }
 
     @Override

@@ -9,6 +9,8 @@ import org.json.JSONObject;
  * Created by Bilal on 1/21/2016.
  */
 public class CallLogModel {
+    @SerializedName("id")
+    public int Id;
     @SerializedName("name")
     public String Name;
     @SerializedName("number")
@@ -26,6 +28,7 @@ public class CallLogModel {
     public String toString() {
         JSONObject jobj = new JSONObject();
         try {
+            jobj.put("Id", Id);
             jobj.put("Name", Name);
             jobj.put("Number", Number);
             jobj.put("DateTimeMillis", DateTimeMillis);

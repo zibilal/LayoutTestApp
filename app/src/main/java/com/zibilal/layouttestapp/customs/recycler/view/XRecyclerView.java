@@ -3,10 +3,13 @@ package com.zibilal.layouttestapp.customs.recycler.view;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.GridLayoutAnimationController;
 import android.widget.ImageView;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -102,5 +105,28 @@ public class XRecyclerView extends RecyclerView {
                 backToTopControl.setVisibility(GONE);
             }
         });
+    }
+
+    @Override
+    protected void attachLayoutAnimationParameters(View child, ViewGroup.LayoutParams params, int index, int count) {
+        if (getAdapter() != null && getLayoutManager() instanceof GridLayoutManager) {
+            GridLayoutAnimationController.AnimationParameters animationParameters =
+                    (GridLayoutAnimationController.AnimationParameters) params.layoutAnimationParameters;
+            if (animationParameters == null) {
+                animationParameters = new GridLayoutAnimationController.AnimationParameters();
+                params.layoutAnimationParameters = animationParameters;
+            }
+
+            int columns = ((GridLayoutManager) getLayoutManager()).getSpanCount();
+
+            animationParameters.count = count;
+            animationParameters.index = index;
+            animationParameters.rowsCount = count / columns;
+
+            final int invertedIndex = count - 1 - index;
+            animationParameters.column = columns - 1 - (invertedIndex % columns);
+            animationParameters.row = animationParameters.rowsCount - 1 - invertedIndex / columns;
+        } else
+            super.attachLayoutAnimationParameters(child, params, index, count);
     }
 }

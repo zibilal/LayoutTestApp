@@ -66,9 +66,9 @@ public class ContactsFetcher {
                             jobj.put("contact_id", id);
                             jobj.put("display_name", cursor.getString(cursor.getColumnIndex(projections[1])));
                             jobj.put("photo_url", cursor.getString(cursor.getColumnIndex(projections[2])));
-                            //jobj.put("companies", getOrganizations(id));
-                            //jobj.put("phones", getPhones(id));
-                            //jobj.put("emails", getEmails(id));
+                            jobj.put("companies", getOrganizations(id));
+                            jobj.put("phones", getPhones(id));
+                            jobj.put("emails", getEmails(id));
                             Log.d(ContactsFetcher.class.getSimpleName(), "[" + id + "]" + jobj.toString());
                             strings.add(jobj.toString());
                         } catch (JSONException e) {
