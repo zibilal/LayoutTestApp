@@ -7,9 +7,11 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
@@ -52,7 +54,9 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -311,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.test_reactive) public void onTestReactiveClick(View view) {
-        Observable<Object> obs1 = Observable.create(observer -> {
+        /*Observable<Object> obs1 = Observable.create(observer -> {
             int mul = 1;
             for (int i = 1; i < 5; i++) {
                 observer.onNext(mul * i);
@@ -337,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
                 observer.onNext(e);
             }
             observer.onCompleted();
-        });
+        });*/
 
         /*Observable.concat(obs1, obs2, obs3).subscribe(new Observer<Object>() {
             @Override
@@ -356,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
 
-        Observable.just(obs1, obs2, obs3).subscribe(new Observer<Observable<Object>>() {
+        /*Observable.just(obs1, obs2, obs3).subscribe(new Observer<Observable<Object>>() {
             @Override
             public void onCompleted() {
                 Log.d(MainActivity.class.getSimpleName(), "Completed is called");
@@ -371,7 +375,46 @@ public class MainActivity extends AppCompatActivity {
             public void onNext(Observable<Object> objectObservable) {
 
             }
+        });*/
+
+        Observable<Integer> observable = Observable.create(subscriber -> {
+            try {
+                Cursor cursor = getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+                if (cursor != null) {
+                    if(cursor.moveToNext()) {
+                        String[] columns = cursor.getColumnNames();
+                        StringBuilder builder = new StringBuilder();
+                        for (String str : columns) {
+                            builder.append("" + str + ", ");
+                        }
+                        Log.d(MainActivity.class.getSimpleName(), "Column names : " + builder.toString());
+                    }
+                }
+
+                String selectionClause = ContactsContract.Data.MIMETYPE + "=? AND lower(" + ContactsContract.CommonDataKinds.Organization.COMPANY + ")=?";
+                String[] selectionArgs = {ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE, "microsoft"};
+                String[] projections = {ContactsContract.Contacts._ID};
+                Cursor cursor2 = getContentResolver().query(ContactsContract.Data.CONTENT_URI, projections, selectionClause, selectionArgs, null);
+                List<Long> ids = new ArrayList<>();
+                if (cursor2 != null) {
+                    while(cursor2.moveToNext()) {
+                        ids.add(cursor2.getLong(0));
+                    }
+                }
+
+                /*selectionClause = ContactsContract.Contacts._ID;
+                selectionArgs = {}
+                Cursor cursor3 = getContentResolver().query(ContactsContract.Contacts.CONTENT_FILTER_URI)
+                subscriber.onNext(1);
+                subscriber.onCompleted();*/
+            } catch (Exception e) {
+                subscriber.onError(e);
+            }
         });
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(val -> Log.d(MainActivity.class.getSimpleName(), val.toString()),
+                        error -> Log.e(MainActivity.class.getSimpleName(), "Error : " + error.getMessage()));
     }
 
     @Override
