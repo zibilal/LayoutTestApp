@@ -379,27 +379,29 @@ public class MainActivity extends AppCompatActivity {
 
         Observable<Integer> observable = Observable.create(subscriber -> {
             try {
-                Cursor cursor = getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+                String[] projections = {ContactsContract.Contacts._ID};
+                Cursor cursor = getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, projections, null, null, null);
                 if (cursor != null) {
-                    if(cursor.moveToNext()) {
-                        String[] columns = cursor.getColumnNames();
-                        StringBuilder builder = new StringBuilder();
-                        for (String str : columns) {
-                            builder.append("" + str + ", ");
-                        }
-                        Log.d(MainActivity.class.getSimpleName(), "Column names : " + builder.toString());
+                    StringBuilder builder = new StringBuilder();
+                    while(cursor.moveToNext()) {
+                        builder.append(cursor.getLong(0) + ", ");
+
                     }
+                    Log.d(MainActivity.class.getSimpleName(), "Ids : " + builder.toString());
                 }
 
                 String selectionClause = ContactsContract.Data.MIMETYPE + "=? AND lower(" + ContactsContract.CommonDataKinds.Organization.COMPANY + ")=?";
                 String[] selectionArgs = {ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE, "microsoft"};
-                String[] projections = {ContactsContract.Contacts._ID};
-                Cursor cursor2 = getContentResolver().query(ContactsContract.Data.CONTENT_URI, projections, selectionClause, selectionArgs, null);
+                String[] projections2 = {ContactsContract.Data.CONTACT_ID};
+                Cursor cursor2 = getContentResolver().query(ContactsContract.Data.CONTENT_URI, projections2, selectionClause, selectionArgs, null);
                 List<Long> ids = new ArrayList<>();
                 if (cursor2 != null) {
+                    StringBuilder builder2 = new StringBuilder();
                     while(cursor2.moveToNext()) {
                         ids.add(cursor2.getLong(0));
+                        builder2.append(cursor2.getLong(0) + ", ");
                     }
+                    Log.d(MainActivity.class.getSimpleName(), "Ids : " + builder2.toString());
                 }
 
                 /*selectionClause = ContactsContract.Contacts._ID;
